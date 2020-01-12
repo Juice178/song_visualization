@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash,render_template, request
 )
 
 from spotipy import SpotifyException
@@ -17,14 +17,18 @@ def get_data():
     IF GET  : Return html file for username, password, artist id inputs
     IF POST : Get data and convert it to a json file, which then is passed to html file
     """
+    # show a form to enter client id and secret key only when an user loggin for the first time
+    is_first_time_login = True
+
     if request.method == 'POST':
         error = None
 
-        client_id = request.form['client_id']
-        client_secret = request.form['client_secret']
-        
-        # get an client throught which an user get spotify music data
-        sp_client = Spotipy(client_id, client_secret)
+        # Instantiate object only when logged in for the first time
+        if is_first_time_login:
+            client_id = request.form['client_id']
+            client_secret = request.form['client_secret']
+            # get an client throught which an user get spotify music data
+            sp_client = Spotipy(client_id, client_secret)
 
         artist_id = request.form['artist_id']
 
@@ -32,18 +36,22 @@ def get_data():
             # get top 10 songs of an artist
             top_tracks = sp_client.get_artist_top_tracks(artist_id)
         except SpotifyOauthError as e:
-            error = e
+            error = 'Either client id or client secret you entered is wrong.'
         except SpotifyException as e:
             error = e
+            is_first_time_login = False
+        except Exception as e:
+            error = e
+        else:
+            is_first_time_login = False
                 
         if error:
             flash(error)
         else:
             json_file = toJson(sp_client, top_tracks)
-            return render_template('visualize/index.html', data=json_file)
+            return render_template('visualize/index.html', data=json_file, is_first_time_login=is_first_time_login)
 
-
-    return render_template('visualize/index.html')
+    return render_template('visualize/index.html', data=None, is_first_time_login=is_first_time_login)
 
 def toJson(sp_client, top_tracks):
     """

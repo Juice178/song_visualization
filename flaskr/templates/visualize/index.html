@@ -11,23 +11,30 @@
 {% block content %}
   
   <form method="post">
-    <label for="client_id">Client ID</label>
-    <input name="client_id" id="username" required>
-    <label for="client_secret">Client Secret</label>
-    <input type="password" name="client_secret" id="client_secret" required>
-
-    <label for="artist_id">Aritst ID</label>
-    <input name="artist_id" id="artist_id" required>
-    <input type="submit" value="Get Data">
+    {% if is_first_time_login %}
+      <label for="client_id">Client ID</label>
+      <input name="client_id" id="username" value="{{ request.form['client_id'] }}" required>
+      <label for="client_secret">Client Secret</label>
+      <input type="password" name="client_secret" id="client_secret" value="{{ request.form['client_secret'] }}" required>
+    {% else %}
+      <label for="client_id" style="display:none;">Client ID</label>
+      <input name="client_id" id="username" value="{{ request.form['client_id'] }}" type="hidden" style="display:none;" required>
+      <label for="client_secret" style="display:none;">Client Secret</label>
+      <input type="password" name="client_secret" id="client_secret" value="{{ request.form['client_secret'] }}" style="display:none;" required>
+    {% endif %}
+      <label for="artist_id">Aritst ID</label>
+      <input name="artist_id" id="artist_id" value="{{ request.form['artist_id'] }}" required>
+      <input type="submit" value="Get Data">
   </form>
 {% endblock %}
 
 {% block script %}
+{% if data %}
 <script>
-  var myData = {{data|safe}};
+  var musicData = {{data|safe}};
   new d3plus.Pie()
     .config({
-      data: myData,
+      data: musicData,
       groupBy: "song_name",
       value: function(d) {
         return 1;
@@ -50,4 +57,5 @@
     })
     .render();
   </script>
+{% endif %}
 {% endblock %}
