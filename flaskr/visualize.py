@@ -9,6 +9,10 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOauthError
 
 bp = Blueprint('viz', __name__)
 
+# def toJson(tracks):
+#     flash(tracks)
+#     print("hello")
+
 @bp.route('/', methods=("GET", "POST"))
 def get_data():
     if request.method == 'POST':
@@ -36,7 +40,20 @@ def get_data():
         else:
             pass
 
-    return render_template('visualize/index.html')
+    json_file = toJson('hello')
+
+    return render_template('visualize/index.html', data=json_file)
+
 
 def toJson(tracks):
-    pass
+    return 'some json file'
+
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+        
+        return view(**kwargs)
+
+    return wrapped_view
