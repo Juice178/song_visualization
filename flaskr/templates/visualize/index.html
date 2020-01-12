@@ -1,6 +1,22 @@
 {% extends 'base.html' %}
-<h1>Hello</h1>
+
+{% block title %}
+　　<p>top 10</p>
+{% endblock %}
+
+{% block header %}
+  <h1>Top 10</h1>
+{% endblock %}
 
 {% block content %}
-  <p>{{data}}</p>
+  <form method="post">
+    <label for="client_id">Client ID</label>
+    <input name="client_id" id="username" required>
+    <label for="client_secret">Client Secret</label>
+    <input type="password" name="client_secret" id="client_secret" required>
+
+    <label for="artist_id">Aritst ID</label>
+    <input name="artist_id" id="artist_id" required>
+    <input type="submit" value="Get Data">
+  </form>
 {% endblock %}

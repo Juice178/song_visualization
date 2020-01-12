@@ -9,17 +9,13 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOauthError
 
 bp = Blueprint('viz', __name__)
 
-# def toJson(tracks):
-#     flash(tracks)
-#     print("hello")
-
 @bp.route('/', methods=("GET", "POST"))
 def get_data():
     if request.method == 'POST':
         error = None
 
-        client_id = request.form['username']
-        client_secret = request.form['password']
+        client_id = request.form['client_id']
+        client_secret = request.form['client_secret']
 
         client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
 
