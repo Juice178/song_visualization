@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block title %}
-　　top 10
+　　Top10
 {% endblock %}
 
 {% block header %}
-  <h1>Top 10</h1>
+  <h1>The most popular 10 songs of an artist</h1>
 {% endblock %}
 
 {% block content %}
@@ -20,4 +20,34 @@
     <input name="artist_id" id="artist_id" required>
     <input type="submit" value="Get Data">
   </form>
+{% endblock %}
+
+{% block script %}
+<script>
+  var myData = {{data|safe}};
+  new d3plus.Pie()
+    .config({
+      data: myData,
+      groupBy: "song_name",
+      value: function(d) {
+        return 1;
+      },
+      tooltipConfig: {
+        tbody: [
+          ["danceability", function(d) { return d["danceability"] }],
+          ["energy", function(d) { return d["energy"] }],
+          ["key", function(d) { return d["key"] }],
+          ["loudness", function(d) { return d["loudness"] }],
+          ["mode", function(d) { return d["mode"] }],
+          ["speechiness", function(d) { return d["speechiness"] }],
+          ["acousticness", function(d) { return d["acousticness"] }],
+          ["instrumentalness", function(d) { return d["instrumentalness"] }],
+          ["liveness", function(d) { return d["liveness"] }],
+          ["valence", function(d) { return d["valence"] }],
+          ["tempo", function(d) { return d["tempo"] }],
+        ]
+      }
+    })
+    .render();
+  </script>
 {% endblock %}
