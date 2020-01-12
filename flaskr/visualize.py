@@ -1,11 +1,10 @@
-import functools
-
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 
 from spotipy import Spotify, SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOauthError
+import pandas as pd
 
 bp = Blueprint('viz', __name__)
 
@@ -25,7 +24,7 @@ def get_data():
         lz_uri = f'spotify:artist:{artist_id}'
 
         try:
-            tracks = sp.artist_top_tracks(lz_uri)
+            top_tracks = sp.artist_top_tracks(lz_uri)
         except SpotifyOauthError as e:
             error = e
         except SpotifyException as e:
@@ -36,20 +35,35 @@ def get_data():
         else:
             pass
 
-    json_file = toJson('hello')
+    json_file = toJson(sp, top_tracks)
 
     return render_template('visualize/index.html', data=json_file)
 
+def toJson(sp,top_tracks):
 
-def toJson(tracks):
-    return 'some json file'
+    feature_names = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 
+        'acousticness','instrumentalness', 'liveness',  'valence', 'tempo', 'duration_ms']
 
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for('auth.login'))
+    rows = []
+    for track in top_tracks['tracks']:
+        row = []
         
-        return view(**kwargs)
+        row.append(track['artists'][0]['name'])
+        row.append(track['name'])
+        row.append(track['popularity'])
+        song_id = track['id']
 
-    return wrapped_view
+        feature_values  = sp.audio_features(song_id)[0]
+        features = [val for key, val in feature_values.items() if key in feature_names]
+
+        row.extend(features)
+        
+        rows.append(row)
+
+    columns = ['artist_name', 'song_name', 'popularity']
+    columns.extend(feature_names)
+    df = pd.DataFrame(rows, columns = columns)
+
+    json_file = df.to_json(orient='records')
+    
+    return json_file
