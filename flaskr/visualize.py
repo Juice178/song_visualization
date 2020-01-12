@@ -33,11 +33,11 @@ def get_data():
         if error:
             flash(error)
         else:
-            pass
+            json_file = toJson(sp, top_tracks)
+            return render_template('visualize/index.html', data=json_file)
 
-    json_file = toJson(sp, top_tracks)
 
-    return render_template('visualize/index.html', data=json_file)
+    return render_template('visualize/index.html')
 
 def toJson(sp,top_tracks):
 
