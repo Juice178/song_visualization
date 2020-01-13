@@ -53,14 +53,14 @@ def get_data():
             flash(error)
         else:
             try:
-                json_file = toJson(sp_client, top_tracks)
+                json_file, artist_name = toJson(sp_client, top_tracks)
             except ToJsonException as e:
                 json_file = None
                 logging.error(f"Failed to convert data to JSON \n{e}")
             finally:
-                return render_template('visualize/index.html', data=json_file, is_first_time_login=is_first_time_login)
+                return render_template('visualize/index.html', data=json_file, is_first_time_login=is_first_time_login, artist_name=artist_name)
 
-    return render_template('visualize/index.html', data=None, is_first_time_login=is_first_time_login)
+    return render_template('visualize/index.html', data=None, is_first_time_login=is_first_time_login,  artist_name=None)
 
 def toJson(sp_client, top_tracks):
     """
@@ -74,6 +74,7 @@ def toJson(sp_client, top_tracks):
     Returns
     _______
     json_file(json): Data with 15 columns
+    artist_name (str): Artist name corresponding to artist id an user entered
     """
 
     # features about a song
@@ -109,4 +110,4 @@ def toJson(sp_client, top_tracks):
     except Exception as e:
         raise ToJsonException(e)
 
-    return json_file
+    return json_file, df['artist_name'][0]
