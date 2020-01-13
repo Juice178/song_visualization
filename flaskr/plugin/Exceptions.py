@@ -1,0 +1,2 @@
+class ToJsonException(Exception):
+    pass

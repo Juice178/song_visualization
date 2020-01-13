@@ -4,8 +4,12 @@ from flask import (
 
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOauthError
+
 from flaskr.api.spotify import Spotipy
+from flaskr.plugin.Exceptions import ToJsonException
+
 import pandas as pd
+import logging
 
 bp = Blueprint('viz', __name__)
 
@@ -48,8 +52,13 @@ def get_data():
         if error:
             flash(error)
         else:
-            json_file = toJson(sp_client, top_tracks)
-            return render_template('visualize/index.html', data=json_file, is_first_time_login=is_first_time_login)
+            try:
+                json_file = toJson(sp_client, top_tracks)
+            except ToJsonException as e:
+                json_file = None
+                logging.error(f"Failed to convert data to JSON \n{e}")
+            finally:
+                return render_template('visualize/index.html', data=json_file, is_first_time_login=is_first_time_login)
 
     return render_template('visualize/index.html', data=None, is_first_time_login=is_first_time_login)
 
@@ -68,29 +77,36 @@ def toJson(sp_client, top_tracks):
     """
 
     # features about a song
-    feature_names = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 
-        'acousticness','instrumentalness', 'liveness',  'valence', 'tempo', 'duration_ms']
+    feature_names = [
+                    'danceability', 'energy',           'key',       'loudness', 'mode',  'speechiness', 
+                    'acousticness', 'instrumentalness', 'liveness',  'valence',  'tempo', 'duration_ms'
+                    ]
 
     rows = []
-    for track in top_tracks['tracks']:
-        row = []
-        
-        row.append(track['artists'][0]['name'])
-        row.append(track['name'])
-        row.append(track['popularity'])
-        song_id = track['id']
 
-        feature_values  = sp_client.get_audio_features(song_id)[0]
-        features = [val for key, val in feature_values.items() if key in feature_names]
+    try:
+        for track in top_tracks['tracks']:
+            row = []
+            
+            row.append(track['artists'][0]['name'])
+            row.append(track['name'])
+            row.append(track['popularity'])
+            song_id = track['id']
 
-        row.extend(features)
-        
-        rows.append(row)
+            feature_values  = sp_client.get_audio_features(song_id)[0]
+            features = [val for key, val in feature_values.items() if key in feature_names]
 
-    columns = ['artist_name', 'song_name', 'popularity']
-    columns.extend(feature_names)
-    df = pd.DataFrame(rows, columns = columns)
+            row.extend(features)
+            
+            rows.append(row)
 
-    json_file = df.to_json(orient='records')
-    
+        columns = ['artist_name', 'song_name', 'popularity']
+        columns.extend(feature_names)
+        df = pd.DataFrame(rows, columns = columns)
+
+        json_file = df.to_json(orient='records')
+
+    except Exception as e:
+        raise ToJsonException(e)
+
     return json_file
