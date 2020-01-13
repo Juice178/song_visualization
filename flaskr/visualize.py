@@ -60,7 +60,7 @@ def get_data():
             finally:
                 return render_template('visualize/index.html', data=json_file, is_first_time_login=is_first_time_login, artist_name=artist_name)
 
-    return render_template('visualize/index.html', data=None, is_first_time_login=is_first_time_login,  artist_name=None)
+    return render_template('visualize/index.html', data=None, is_first_time_login=is_first_time_login,  artist_name='')
 
 def toJson(sp_client, top_tracks):
     """
