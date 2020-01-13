@@ -1,5 +1,6 @@
 import os 
-from flask import Flask 
+from flask import Flask
+import logging
 
 def create_app(env="stg"):
     app = Flask(__name__, instance_relative_config=True)
@@ -7,6 +8,8 @@ def create_app(env="stg"):
             SECRET_KEY='dev',
             DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+
+    app.logger.setLevel(logging.ERROR)
 
     if env == 'stg':
         app.config.from_pyfile("stg.cfg", silent=False)
@@ -18,18 +21,8 @@ def create_app(env="stg"):
     except OSError:
         pass 
 
-    @app.route("/hello")
-    def hello():
-        return 'Hello, World!'
-
-    # from . import db
-    # db.init_app(app)
     from . import visualize
     app.register_blueprint(visualize.bp)
     app.add_url_rule('/', endpoint="index")
-
-    # from . import blog
-    # app.register_blueprint(blog.bp)
-    # app.add_url_rule('/', endpoint="index")
 
     return app
